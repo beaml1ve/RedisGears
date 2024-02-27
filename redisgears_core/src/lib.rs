@@ -391,7 +391,7 @@ impl<'ctx, 'lib_ctx> LoadLibraryCtxInterface for GearsLoadLibraryCtx<'ctx, 'lib_
         trim: bool,
         description: Option<String>,
     ) -> Result<(), GearsApiError> {
-        verify_name(name).map_err(|e| {
+        verify_trigger_name(name).map_err(|e| {
             GearsApiError::new(format!("Unallowed stream trigger name '{name}', {e}."))
         })?;
 
@@ -478,7 +478,7 @@ impl<'ctx, 'lib_ctx> LoadLibraryCtxInterface for GearsLoadLibraryCtx<'ctx, 'lib_
         keys_notifications_consumer_ctx: Box<dyn KeysNotificationsConsumerCtxInterface>,
         description: Option<String>,
     ) -> Result<(), GearsApiError> {
-        verify_name(name).map_err(|e| {
+        verify_trigger_name(name).map_err(|e| {
             GearsApiError::new(format!("Unallowed key space trigger name '{name}', {e}."))
         })?;
 
@@ -1678,6 +1678,18 @@ pub(crate) fn verify_name(name: &str) -> Result<(), String> {
     }
     name.chars().try_for_each(|c| {
         if c.is_ascii_alphanumeric() || c == '_' {
+            return Ok(());
+        }
+        Err(format!("Unallowed char was given '{c}'"))
+    })
+}
+
+pub(crate) fn verify_trigger_name(name: &str) -> Result<(), String> {
+    if name.is_empty() {
+        return Err("Empty name is not allowed".to_owned());
+    }
+    name.chars().try_for_each(|c| {
+        if c.is_ascii_alphanumeric() || "_.:".find(c).is_some()  {
             return Ok(());
         }
         Err(format!("Unallowed char was given '{c}'"))
